@@ -1,0 +1,37 @@
+#!/bin/bash
+set -euo pipefail
+
+# Standard Logging Functions
+log_info()  { echo "$(date -u +'%Y-%m-%dT%H:%M:%SZ') [INFO]  $*" ; }
+log_error() { echo "$(date -u +'%Y-%m-%dT%H:%M:%SZ') [ERROR] $*" >&2 ; }
+
+# Check 1: Nginx Service Status (guarded against set -e abort)
+STATUS=$(systemctl is-active nginx || true)
+log_info "Nginx status: $STATUS"
+
+if [[ "$STATUS" != "active" ]]; then
+    log_error "Nginx service is not active."
+    exit 1
+fi
+
+# Check 2: HTTP Endpoint (guarded against set -e connection drops)
+CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost || echo "000")
+log_info "HTTP response code: $CODE"
+
+if [[ "$CODE" != "200" ]]; then
+    log_error "Web server returned unexpected code: $CODE"
+    exit 1
+fi
+
+# Check 3: Root Disk Space
+DISK_USAGE=$(df -h / | awk 'NR==2 {print $5}' | tr -d '%')
+DISK_THRESHOLD=85
+log_info "Root disk utilization: ${DISK_USAGE}%"
+
+if (( DISK_USAGE >= DISK_THRESHOLD )); then
+    log_error "Disk usage is at or above ${DISK_THRESHOLD}% threshold."
+    exit 1
+fi
+
+log_info "All system and service health checks passed."
+exit 0
