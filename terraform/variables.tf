@@ -33,3 +33,9 @@ variable "subnet_web_prefix" {
   type        = list(string)
   default     = ["10.0.1.0/24"]
 }
+
+variable "admin_source_ip" {
+  description = "Workstation CIDR prefix authorized for administrative SSH access"
+  type        = string
+  default     = "180.151.36.142/32"
+}
