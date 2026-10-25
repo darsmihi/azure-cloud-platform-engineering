@@ -1,12 +1,12 @@
 
 resource "azurerm_resource_group" "lab_rg" {
-  name     = "rg-terraform-foundations"
-  location = "centralindia"
+  name     = var.resource_group_name
+  location = var.location
 
   tags = {
-    Environment = "Lab"
+    Environment = var.environment
     Project     = "Project-A"
     ManagedBy   = "Terraform"
-    Owner       = "Darshan Nair"
+    Owner       = var.owner
   }
-} # <--- Closes after tags
+} 
