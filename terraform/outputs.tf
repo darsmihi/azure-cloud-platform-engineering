@@ -22,3 +22,8 @@ output "web_nsg_id" {
   description = "The ARM Resource ID of the web network security group"
   value       = azurerm_network_security_group.web_nsg.id
 }
+
+output "public_ip_address" {
+  description = "The static public IP address provisioned for the web workload"
+  value       = azurerm_public_ip.web_pip.ip_address
+}

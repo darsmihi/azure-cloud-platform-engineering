@@ -77,3 +77,41 @@ resource "azurerm_network_security_group" "web_nsg" {
   subnet_id                 = azurerm_subnet.web_subnet.id
   network_security_group_id = azurerm_network_security_group.web_nsg.id
 }
+
+# Standard Static Public IP
+resource "azurerm_public_ip" "web_pip" {
+  name                = "pip-web-vm"
+  location            = azurerm_resource_group.lab_rg.location
+  resource_group_name = azurerm_resource_group.lab_rg.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+
+  tags = {
+    Environment = var.environment
+    Project     = "Project-A"
+    ManagedBy   = "Terraform"
+    Owner       = var.owner
+  }
+}
+
+# Network Interface Card (NIC) connecting the VM to snet-web & Public IP
+resource "azurerm_network_interface" "web_nic" {
+  name                = "nic-web-vm"
+  location            = azurerm_resource_group.lab_rg.location
+  resource_group_name = azurerm_resource_group.lab_rg.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.web_subnet.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.web_pip.id
+  }
+
+  tags = {
+    Environment = var.environment
+    Project     = "Project-A"
+    ManagedBy   = "Terraform"
+    Owner       = var.owner
+  }
+}
+
