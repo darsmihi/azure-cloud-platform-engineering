@@ -21,3 +21,15 @@ variable "owner" {
   type        = string
   default     = "Darshan Nair"
 }
+
+variable "vnet_address_space" {
+  description = "The address space allocated to the Virtual Network"
+  type        = list(string)
+  default     = ["10.0.0.0/16"]
+}
+
+variable "subnet_web_prefix" {
+  description = "The CIDR address prefix for the web workload subnet"
+  type        = list(string)
+  default     = ["10.0.1.0/24"]
+}
