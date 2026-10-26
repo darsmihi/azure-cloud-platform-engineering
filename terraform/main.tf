@@ -143,6 +143,52 @@ resource "azurerm_linux_virtual_machine" "web_vm" {
     version   = "latest"
   }
 
+  custom_data = base64encode(<<-EOF
+    #!/bin/bash
+    set -euo pipefail
+    
+    # Update package index and install Nginx
+    apt-get update -y
+    apt-get install -y nginx
+
+    # Ensure Nginx is enabled and active
+    systemctl enable --now nginx
+
+    # Deploy custom platform engineering landing page
+    cat <<PAGE > /var/www/html/index.html
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>Azure Cloud Platform Engineering</title>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; padding: 60px 20px; background-color: #0e1117; color: #e6edf3; }
+        .card { background-color: #161b22; border: 1px solid #30363d; border-radius: 8px; max-width: 650px; margin: 0 auto; padding: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        h1 { color: #58a6ff; margin-bottom: 8px; }
+        p.subtitle { color: #8b949e; font-size: 1.1rem; margin-top: 0; }
+        .meta { text-align: left; background-color: #0d1117; padding: 15px 20px; border-radius: 6px; font-family: monospace; font-size: 0.95rem; line-height: 1.6; border: 1px solid #21262d; margin-top: 25px; }
+        .status-badge { display: inline-block; padding: 4px 10px; background-color: #238636; color: white; border-radius: 20px; font-size: 0.85rem; font-weight: bold; }
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <span class="status-badge">Automated Deployment Active</span>
+        <h1>Project A: Infrastructure as Code</h1>
+        <p class="subtitle">Azure Cloud Platform & DevOps Engineering</p>
+        <div class="meta">
+          <strong>Orchestration:</strong> Terraform (Remote State Backend)<br>
+          <strong>Host:</strong> vm-web-lab<br>
+          <strong>Compute SKU:</strong> Standard_DC1s_v3 (Zone 3)<br>
+          <strong>Location:</strong> Central India<br>
+          <strong>Bootstrap Agent:</strong> Cloud-Init (Nginx auto-provisioned)
+        </div>
+      </div>
+    </body>
+    </html>
+    PAGE
+      EOF
+    )
+
   tags = {
     Environment = var.environment
     Project     = "Project-A"
