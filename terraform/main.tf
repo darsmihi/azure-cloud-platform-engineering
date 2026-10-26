@@ -115,3 +115,39 @@ resource "azurerm_network_interface" "web_nic" {
   }
 }
 
+# Ubuntu 24.04 LTS Compute Instance
+resource "azurerm_linux_virtual_machine" "web_vm" {
+  name                  = "vm-web-lab"
+  computer_name         = "vm-web-lab"
+  location              = azurerm_resource_group.lab_rg.location
+  resource_group_name   = azurerm_resource_group.lab_rg.name
+  size                  = var.vm_size
+  zone                  = "3"
+  admin_username        = var.admin_username
+  network_interface_ids = [azurerm_network_interface.web_nic.id]
+
+  admin_ssh_key {
+    username   = var.admin_username
+    public_key = file(var.ssh_public_key_path)
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "ubuntu-24_04-lts"
+    sku       = "server"
+    version   = "latest"
+  }
+
+  tags = {
+    Environment = var.environment
+    Project     = "Project-A"
+    ManagedBy   = "Terraform"
+    Owner       = var.owner
+  }
+}
+

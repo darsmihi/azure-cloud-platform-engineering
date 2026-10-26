@@ -27,3 +27,13 @@ output "public_ip_address" {
   description = "The static public IP address provisioned for the web workload"
   value       = azurerm_public_ip.web_pip.ip_address
 }
+
+output "vm_name" {
+  description = "The hostname of the deployed Linux VM"
+  value       = azurerm_linux_virtual_machine.web_vm.name
+}
+
+output "ssh_command" {
+  description = "Quick SSH connection string to connect to the VM"
+  value       = "ssh -i ~/.ssh/id_rsa_azure ${var.admin_username}@${azurerm_public_ip.web_pip.ip_address}"
+}

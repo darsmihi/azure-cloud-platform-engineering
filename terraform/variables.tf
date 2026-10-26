@@ -39,3 +39,21 @@ variable "admin_source_ip" {
   type        = string
   default     = "180.151.36.142/32"
 }
+
+variable "vm_size"{
+    description = "Size of the virtual machine compute instance"
+    type        = string
+    default     = "Standard_DC1s_v3"
+}
+
+variable "admin_username" {
+  description = "Administrative username for the Linux VM"
+  type        = string
+  default     = "azureuser"
+}
+
+variable "ssh_public_key_path" {
+  description = "Local path to the SSH public key"
+  type        = string
+  default     = "~/.ssh/id_rsa_azure.pub"
+}
