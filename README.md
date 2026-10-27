@@ -106,6 +106,7 @@ To enforce cost hygiene and eliminate compute burn during non-working hours, the
 .\stop-lab.ps1
 
 ## Repository Structure
+<pre>
 azure-cloud-platform-engineering/
 ├── .gitignore                         # Excludes cached binaries, state files, and private keys
 ├── README.md                          # Executive architecture summary and documentation
@@ -124,5 +125,5 @@ azure-cloud-platform-engineering/
     ├── main.tf                        # VNet, Subnet, NSG, Edge NIC, Public IP, and Cloud-Init VM
     ├── variables.tf                   # Reusable, parameterized inputs
     └── outputs.tf                     # Programmatic endpoints and connection strings
-```
+</pre>
 
