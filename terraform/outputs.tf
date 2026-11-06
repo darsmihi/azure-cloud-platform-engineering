@@ -37,3 +37,13 @@ output "ssh_command" {
   description = "Quick SSH connection string to connect to the VM"
   value       = "ssh -i ~/.ssh/id_rsa_azure ${var.admin_username}@${azurerm_public_ip.web_pip.ip_address}"
 }
+
+output "acr_login_server" {
+  description = "The URL endpoint used to log in, tag, and push images to Azure Container Registry"
+  value = azurerm_container_registry.app_acr.login_server
+}
+
+output "acr_name" {
+  description = "The name of the Azure Container Registry"
+  value       = azurerm_container_registry.app_acr.name
+}

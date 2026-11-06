@@ -37,7 +37,7 @@ variable "subnet_web_prefix" {
 variable "admin_source_ip" {
   description = "Workstation CIDR prefix authorized for administrative SSH access"
   type        = string
-  default     = "180.151.36.142/32"
+  default     = "150.107.41.221/32"
 }
 
 variable "vm_size"{
@@ -56,4 +56,16 @@ variable "ssh_public_key_path" {
   description = "Local path to the SSH public key"
   type        = string
   default     = "~/.ssh/id_rsa_azure.pub"
+}
+
+variable "acr_name_prefix" {
+  description  = "prefix for the Azure Container Registry (must be globally unique and alphanumeric only)"
+  type  = string
+  default = "crccloudplatform"
+}
+
+variable "acr_sku" {
+  description = "Tier of Azure Container Registry (Basic, Standard, Premium)"
+  type  = string
+  default = "Basic"
 }

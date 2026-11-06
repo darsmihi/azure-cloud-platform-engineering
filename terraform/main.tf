@@ -126,6 +126,10 @@ resource "azurerm_linux_virtual_machine" "web_vm" {
   admin_username        = var.admin_username
   network_interface_ids = [azurerm_network_interface.web_nic.id]
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   admin_ssh_key {
     username   = var.admin_username
     public_key = file(var.ssh_public_key_path)
@@ -197,3 +201,34 @@ resource "azurerm_linux_virtual_machine" "web_vm" {
   }
 }
 
+# Random suffix to guarantee globally unique ACR name
+resource "random_string" "acr_suffix" {
+  length  = 6
+  special = false
+  upper   = false
+  numeric = true
+}
+
+# Azure Container Registry (Project B Image Store)
+resource "azurerm_container_registry" "app_acr" {
+  name                = "${var.acr_name_prefix}${random_string.acr_suffix.result}"
+  resource_group_name = azurerm_resource_group.lab_rg.name
+  location            = azurerm_resource_group.lab_rg.location
+  sku                 = var.acr_sku
+  admin_enabled       = false
+
+  tags = {
+    Environment = var.environment
+    Project     = "Project-B"
+    ManagedBy   = "Terraform"
+    Owner       = var.owner
+  }
+}
+
+resource "azurerm_role_assignment" "vm_acr_pull" {
+  scope                = azurerm_container_registry.app_acr.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_linux_virtual_machine.web_vm.identity[0].principal_id
+
+  depends_on = [azurerm_linux_virtual_machine.web_vm]
+}
