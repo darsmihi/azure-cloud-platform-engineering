@@ -5,7 +5,7 @@ $response = [
     "status"      => "healthy",
     "timestamp"   => gmdate("Y-m-d\TH:i:s\Z"),
     "application" => "Azure Cloud Platform Workload",
-    "version"     => "1.0.0",
+    "version"     => "1.1.0",
     "environment" => getenv('APP_ENV') ?: 'local'
 ];
 

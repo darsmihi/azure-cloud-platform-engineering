@@ -54,3 +54,17 @@ jobs:
           docker tag app-workload:${{ github.sha }} $ACR_REGISTRY/azure-cloud-workload:latest
           docker push $ACR_REGISTRY/azure-cloud-workload:${{ github.sha }}
           docker push $ACR_REGISTRY/azure-cloud-workload:latest
+        
+      - name: Deploy Container to Azure VM
+        run: |
+          az vm run-command invoke \
+            --resource-group rg-terraform-foundations \
+            --name vm-web-lab \
+            --command-id RunShellScript \
+            --scripts "
+              az login --identity
+              az acr login --name crccloudplatform295bpq
+              docker pull crccloudplatform295bpq.azurecr.io/azure-cloud-workload:latest
+              docker stop cloud-app || true
+              docker rm cloud-app || true
+              docker run -d --name cloud-app --restart always -p 80:8080 crccloudplatform295bpq.azurecr.io/azure-cloud-workload:latest"
