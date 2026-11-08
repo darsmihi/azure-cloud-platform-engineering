@@ -47,3 +47,18 @@ output "acr_name" {
   description = "The name of the Azure Container Registry"
   value       = azurerm_container_registry.app_acr.name
 }
+
+output "azure_client_id" {
+  description = "Client ID for GitHub Actions OIDC"
+  value       = azuread_application.github_oidc.client_id
+}
+
+output "azure_tenant_id" {
+  description = "Azure Tenant ID"
+  value       = data.azurerm_client_config.current.tenant_id
+}
+
+output "azure_subscription_id" {
+  description = "Azure Subscription ID"
+  value       = data.azurerm_client_config.current.subscription_id
+}

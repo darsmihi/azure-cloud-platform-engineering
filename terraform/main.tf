@@ -232,3 +232,38 @@ resource "azurerm_role_assignment" "vm_acr_pull" {
 
   depends_on = [azurerm_linux_virtual_machine.web_vm]
 }
+
+# Azure AD / Entra Application for GitHub Actions OIDC
+resource "azuread_application" "github_oidc" {
+  display_name = "app-github-actions-oidc"
+}
+
+resource "azuread_service_principal" "github_oidc" {
+  client_id = azuread_application.github_oidc.client_id
+}
+
+# Trust policy linking your GitHub repo branch to Azure
+resource "azuread_application_federated_identity_credential" "github_repo" {
+  application_id = azuread_application.github_oidc.id
+  display_name   = "github-actions-main-branch"
+  description    = "Federated credential for GitHub Actions main branch"
+  audiences      = ["api://AzureADTokenExchange"]
+  issuer         = "https://token.actions.githubusercontent.com"
+  subject        = "repo:darsmihi/azure-cloud-platform-engineering:ref:refs/heads/main"
+}
+
+# Grant the Service Principal Contributor access to the Resource Group
+resource "azurerm_role_assignment" "github_rg_contributor" {
+  scope                = azurerm_resource_group.lab_rg.id
+  role_definition_name = "Contributor"
+  principal_id         = azuread_service_principal.github_oidc.object_id
+}
+
+# Grant ACR Push permission to the GitHub Actions runner
+resource "azurerm_role_assignment" "github_acr_push" {
+  scope                = azurerm_container_registry.app_acr.id
+  role_definition_name = "AcrPush"
+  principal_id         = azuread_service_principal.github_oidc.object_id
+}
+
+data "azurerm_client_config" "current" {}
