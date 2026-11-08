@@ -249,7 +249,7 @@ resource "azuread_application_federated_identity_credential" "github_repo" {
   description    = "Federated credential for GitHub Actions main branch"
   audiences      = ["api://AzureADTokenExchange"]
   issuer         = "https://token.actions.githubusercontent.com"
-  subject        = "repo:darsmihi/azure-cloud-platform-engineering:ref:refs/heads/main"
+  subject        = "repo:darsmihi@111216258/azure-cloud-platform-engineering@1426718859:ref:refs/heads/main"
 }
 
 # Grant the Service Principal Contributor access to the Resource Group
