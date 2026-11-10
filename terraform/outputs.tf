@@ -62,3 +62,13 @@ output "azure_subscription_id" {
   description = "Azure Subscription ID"
   value       = data.azurerm_client_config.current.subscription_id
 }
+
+output "key_vault_name" {
+  description = "The name of the Azure Key Vault"
+  value       = azurerm_key_vault.app_kv.name
+}
+
+output "key_vault_uri" {
+  description = "The URI endpoint of the Azure Key Vault"
+  value       = azurerm_key_vault.app_kv.vault_uri
+}

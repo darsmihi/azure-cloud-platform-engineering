@@ -267,3 +267,63 @@ resource "azurerm_role_assignment" "github_acr_push" {
 }
 
 data "azurerm_client_config" "current" {}
+
+#Random suffix to guarantee globally unique Key Vault name
+resource "random_string" "kv_suffix" {
+  length  = 6
+  special = false
+  upper   = false
+  numeric = true
+}
+
+#Azure Key Vault for Secure Application Secrets
+resource "azurerm_key_vault" "app_kv" {
+  name                = "kv-cloud-${random_string.kv_suffix.result}"
+  location            = azurerm_resource_group.lab_rg.location
+  resource_group_name = azurerm_resource_group.lab_rg.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+  enable_rbac_authorization = true
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = false
+
+  tags = {
+    Environment = var.environment
+    Project     = "Project-B"
+    ManagedBy   = "Terraform"
+    Owner       = var.owner
+  }
+}
+
+# Grant the VM Managed Identity "Key Vault Secrets User" permission
+resource "azurerm_role_assignment" "vm_kv_secrets_user" {
+  scope                = azurerm_key_vault.app_kv.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_linux_virtual_machine.web_vm.identity[0].principal_id
+
+  depends_on = [
+    azurerm_linux_virtual_machine.web_vm,
+    azurerm_key_vault.app_kv
+  ]
+}
+
+# Database Secret for Project B Worload
+resource "azurerm_key_vault_secret" "db_password" {
+  name         = "db-password"
+  value        = "P@ssw0rd123!"
+  key_vault_id = azurerm_key_vault.app_kv.id
+
+  tags = {
+    Environment = var.environment
+    Project     = "Project-B"
+    ManagedBy   = "Terraform"
+    Owner       = var.owner
+  }
+
+  # Grant your current logged-in identity permission to create secrets via Terraform
+  depends_on = [
+    azurerm_key_vault.app_kv
+  ]
+}
+
+

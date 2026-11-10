@@ -37,7 +37,7 @@ variable "subnet_web_prefix" {
 variable "admin_source_ip" {
   description = "Workstation CIDR prefix authorized for administrative SSH access"
   type        = string
-  default     = "150.107.41.221/32"
+  default     = "150.107.41.0/24"
 }
 
 variable "vm_size"{

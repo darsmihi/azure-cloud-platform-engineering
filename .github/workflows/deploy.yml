@@ -64,7 +64,20 @@ jobs:
             --scripts "
               az login --identity
               az acr login --name crccloudplatform295bpq
+
+              # Fetch dynamic secret from Azure Key Vault into runtime memory
+              DB_SECRET=\$(az keyvault secret show --vault-name kv-cloud-oubpbo --name db-password --query 'value' -o tsv)
+
+              # Pull latest image
               docker pull crccloudplatform295bpq.azurecr.io/azure-cloud-workload:latest
+
+              # Cycle container with injected environment variables
               docker stop cloud-app || true
               docker rm cloud-app || true
-              docker run -d --name cloud-app --restart always -p 80:8080 crccloudplatform295bpq.azurecr.io/azure-cloud-workload:latest"
+              docker run -d --name cloud-app \
+                --restart always \
+                -e APP_ENV=production \
+                -e DB_PASSWORD=\"\$DB_SECRET\" \
+                -p 80:8080 \
+                crccloudplatform295bpq.azurecr.io/azure-cloud-workload:latest
+            "
