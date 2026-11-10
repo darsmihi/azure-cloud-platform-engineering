@@ -55,7 +55,7 @@ jobs:
           docker push $ACR_REGISTRY/azure-cloud-workload:${{ github.sha }}
           docker push $ACR_REGISTRY/azure-cloud-workload:latest
         
-      - name: Deploy Container to Azure VM
+      - name: Deploy Container to Azure VM (Zero-Downtime)
         run: |
           az vm run-command invoke \
             --resource-group rg-terraform-foundations \
@@ -65,19 +65,54 @@ jobs:
               az login --identity
               az acr login --name crccloudplatform295bpq
 
-              # Fetch dynamic secret from Azure Key Vault into runtime memory
+              # Fetch dynamic secret from Azure Key Vault
               DB_SECRET=\$(az keyvault secret show --vault-name kv-cloud-oubpbo --name db-password --query 'value' -o tsv)
 
               # Pull latest image
               docker pull crccloudplatform295bpq.azurecr.io/azure-cloud-workload:latest
 
-              # Cycle container with injected environment variables
-              docker stop cloud-app || true
-              docker rm cloud-app || true
+              # Determine active container color
+              if docker ps --format '{{.Names}}' | grep -q 'cloud-app-blue'; then
+                NEW_COLOR='green'
+                OLD_COLOR='blue'
+                NEW_PORT=8082
+              else
+                NEW_COLOR='blue'
+                OLD_COLOR='green'
+                NEW_PORT=8081
+              fi
+
+              # Clean up any stale instances of the target color
+              docker rm -f \"cloud-app-\$NEW_COLOR\" 2>/dev/null || true
+
+              # Start new container on staged port
+              docker run -d --name \"cloud-app-\$NEW_COLOR\" \
+                --restart always \
+                -e APP_ENV=production \
+                -e DB_PASSWORD=\"\$DB_SECRET\" \
+                -p \$NEW_PORT:8080 \
+                crccloudplatform295bpq.azurecr.io/azure-cloud-workload:latest
+
+              # Verify health probe before traffic cutover
+              sleep 2
+              for i in {1..5}; do
+                if curl -s http://127.0.0.1:\$NEW_PORT | grep -q '\"status\": \"healthy\"'; then
+                  echo \"Container cloud-app-\$NEW_COLOR is healthy. Cutting over traffic...\"
+                  break
+                fi
+                sleep 2
+              done
+
+              # Switch primary port 80 binding to the healthy release
+              docker rm -f cloud-app 2>/dev/null || true
               docker run -d --name cloud-app \
                 --restart always \
                 -e APP_ENV=production \
                 -e DB_PASSWORD=\"\$DB_SECRET\" \
                 -p 80:8080 \
                 crccloudplatform295bpq.azurecr.io/azure-cloud-workload:latest
+
+              # Clean up staged staging instance
+              docker rm -f \"cloud-app-\$NEW_COLOR\" 2>/dev/null || true
+              docker rm -f \"cloud-app-\$OLD_COLOR\" 2>/dev/null || true
             "
